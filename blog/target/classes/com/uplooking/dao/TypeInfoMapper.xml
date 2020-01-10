@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.uplooking.dao.TypeInfoMapper">
+	<resultMap type="TypeInfo" id="queryType">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="sort" property="sort" />
+		<result column="num" property="num" />
+	</resultMap>
+	<select id="findList" resultMap="queryType">
+		select
+		id,name,sort,num
+		from
+		type_info
+		ORDER BY
+		sort
+	</select>
+	
+	<select id="findOne" resultMap="queryType">
+		select
+		id,name,sort,num
+		from
+		type_info
+		where id=#{typeId}
+	</select>
+
+	<!-- 插入数据 -->
+	<insert id="insert">
+		insert into type_info
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="sort!=null and sort !='' ">sort,</if>
+			<if test="name!=null and name !='' ">name,</if>
+			<if test="num!=null and num !='' ">num,</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="sort!=null">#{sort},</if>
+			<if test="name!=null">#{name},</if>
+			<if test="num!=null">#{num}</if>
+		</trim>
+	</insert>
+	
+	<!-- 更新数据 -->
+	<update id="update">
+	   update type_info
+	   <set>
+	        <if test="sort!=null and sort !=''">sort=#{sort},</if>
+			<if test="name!=null and name !=''">name=#{name},</if>
+			<if test="num!=null and num !=''">num=#{num},</if>
+	   </set>
+	   where id=#{id}
+	</update>
+	
+	<!-- 批量删除 -->
+	<delete id="delete">
+	delete from type_info where id in
+	<foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+	#{item}
+	</foreach>     
+	</delete>
+</mapper>

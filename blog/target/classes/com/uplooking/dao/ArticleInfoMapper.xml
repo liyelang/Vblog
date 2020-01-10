@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.uplooking.dao.ArticleInfoMapper">
+	<resultMap type="ArticleInfo" id="queryUser">
+		<id column="id" property="id" />
+		<result column="title" property="title" />
+		<result column="content" property="content" />
+		<result column="content_text" property="contentText" />
+		<result column="conver" property="converimg" />
+		<result column="view_count" property="viewCount" />
+		<result column="update_time" property="updateTime" />
+		<result column="status" property="status" />
+		<result column="type_id" property="typeId" />
+		<result column="placement" property="placement" />
+		
+        <result column="name" property="name" />
+	</resultMap>
+
+<!-- 查询正常1 -->
+	<select id="list" resultMap="queryUser">
+		SELECT
+			ar.id,
+			tr.`name`,
+			ar.type_id,
+				ar.title,
+				ar.conver,
+				ar.content_text,
+				DATE_FORMAT(ar.update_time, '%Y-%m-%d %H:%i:%S') as update_time,
+				ar.view_count,
+				ar.placement
+				FROM
+					article_info as ar,
+					type_info as tr
+				WHERE
+				ar.type_id=tr.id 
+			 <if test="status!=null and status !='' ">AND ar.status=#{status}</if>
+			 <if test="typeId!=null and typeId !='' ">AND ar.type_id=#{typeId}</if>
+			 <if test="startDate!=null and startDate !='' ">
+			 AND ar.update_time NETWEEN #{startDate} and #{endDate}
+			 </if>
+			  <if test="keyword!=null and keyword !='' ">
+			  AND ar.title LIKE concat(concat('%',#{keyword}),'%')
+			  </if>
+		ORDER BY
+			ar.UPDATE_time DESC
+	</select>
+	
+	<select id="findOne" resultMap="queryUser">
+		SELECT
+			ar.id,
+			tr.`name`,
+			ar.type_id,
+				ar.title,
+				ar.conver,
+				ar.content,
+				ar.content_text,
+				DATE_FORMAT(ar.update_time, '%Y-%m-%d') as update_time,
+				ar.view_count,
+				ar.placement
+				FROM
+					article_info as ar,
+					type_info as tr
+				WHERE
+				ar.type_id=tr.id 
+				AND ar.status='1'
+				AND ar.id=#{id}
+	</select>
+	
+	<!-- 通过文章id 查询文章count -->
+	<select id="countBytypeId" resultType="int">
+		SELECT count(*) from article_info where status=#{status} AND type_id IN
+		<foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+	      #{item}
+	   </foreach>
+	</select>
+	
+	<insert id="add">
+	   insert into article_info
+	   <trim prefix="(" suffix=")" suffixOverrides=",">
+	    <if test="title!=null and title !='' ">title,</if>
+		<if test="content!=null and content !='' ">content,</if>
+		<if test="contentText!=null and contentText !='' ">content_text,</if>
+		<if test="converimg!=null and converimg !='' ">conver,</if>
+		<if test="viewCount!=null and viewCount !='' ">view_count,</if>
+		<if test="updateTime!=null and updateTime !='' ">update_time,</if>
+		<if test="status!=null and status !='' ">status,</if>
+		<if test="typeId!=null and typeId !='' ">type_id,</if>
+		<if test="placement!=null">placement,</if>
+		<if test="typenum!=null">typenum,</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+	    <if test="title!=null and title !='' ">#{title},</if>
+		<if test="content!=null and content !='' ">#{content},</if>
+		<if test="contentText!=null and contentText !='' ">#{contentText},</if>
+		<if test="converimg!=null and converimg !='' ">#{converimg},</if>
+		<if test="viewCount!=null and viewCount !='' ">#{viewCount},</if>
+		<if test="updateTime!=null and updateTime !='' ">#{updateTime},</if>
+		<if test="status!=null and status !='' ">#{status},</if>
+		<if test="typeId!=null and typeId !='' ">#{typeId},</if>
+		<if test="placement!=null">#{placement},</if>
+		<if test="typenum!=null">#{typenum},</if>
+		</trim>
+	</insert>
+	
+	<update id="update">
+	update article_info
+	  <set>
+	    <if test="title!=null and title !='' ">title=#{title},</if>
+		<if test="content!=null and content !='' ">content=#{content},</if>
+		content_text=#{contentText},
+		<if test="converimg!=null and converimg !='' ">conver=#{converimg},</if>
+		<if test="viewCount!=null and viewCount !='' ">view_count=#{viewCount},</if>
+		<if test="updateTime!=null and updateTime !='' ">update_time=#{updateTime},</if>
+		<if test="status!=null and status !='' ">status=#{status},</if>
+		<if test="typeId!=null and typeId !='' ">type_id=#{typeId},</if>
+		<if test="placement!=null and placement !='' ">placement=#{placement},</if>
+     </set>
+	 where id=#{id}
+	</update>
+
+
+<!-- 批量移动文章到分类 -->
+<update id="updateType">
+	update article_info
+	  <set>            
+		<if test="typeId!=null and typeId !='' ">type_id=#{typeId},</if>
+     </set>
+	 where id IN
+	<foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+	   #{item}
+	</foreach>
+	</update>
+	
+<!-- 放入回收站 -->	
+<update id="upStatus">
+	update article_info
+	  <set>            
+		<if test="status!=null and status !='' ">status=#{status},</if>
+     </set>
+	 where id IN
+	<foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+	   #{item}
+	</foreach>
+	</update>
+	
+	<!-- 彻底删除 -->
+	<delete id="delete">
+	delete from article_info where id IN
+	<foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+	   #{item}
+	</foreach>
+	</delete>
+	
+	<!-- 根据文章类型id 删除回收站 -->
+	<delete id="batchDelatetypeId">
+	delete from article_info where type_id IN
+	<foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+	   #{item}
+	</foreach>
+	</delete>
+	
+	<!-- 更新访问量 -->
+	<update id="updateCount">
+	update article_info 
+	<set>
+	<if test="newCount!=null and newCount !='' ">view_count=#{newCount},</if>
+	</set>
+	where id=${id}
+	</update>
+	
+</mapper>

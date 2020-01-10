@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.uplooking.dao.portal.PortalUserInfoMapper">
+     <resultMap type="PortalUserInfo" id="quietPortalUser">
+		<id column="portal_id" property="portalId" />
+		<result column="portal_name" property="portalName" />
+		<result column="portal_pwd" property="portalPwd" />
+		<result column="portal_addr" property="portalAddr" />
+		<result column="portal_sex" property="portalSex" />
+		<result column="portal_time" property="portalTime" />
+		<result column="portal_introduce" property="portalIntroduce" />
+	</resultMap>
+
+<!-- 注册 -->
+	<insert id="add">
+		insert into portal_userinfo
+		(portal_name,portal_pwd,portal_sex,portal_addr,portal_time,portal_introduce)
+		VALUES(#{portalName},#{portalPwd},#{portalSex},#{portalAddr},#{portalTime},#{portalIntroduce});
+	</insert>
+
+<!-- 登陆 -->
+	<select id="finOne" resultMap="quietPortalUser">
+  select * from 
+     portal_userinfo
+        where portal_name=#{portalName} 
+         AND
+          portal_pwd=#{portalPwd}
+	</select>
+	
+	<!-- 查询注册用户是否存在 -->
+	<select id="findByName" resultType="Integer">
+  select count(*) from 
+     portal_userinfo
+        where portal_name=#{portalName}
+	</select>
+
+</mapper>

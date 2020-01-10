@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+http://www.springframework.org/schema/aop 
+http://www.springframework.org/schema/aop/spring-aop-3.0.xsd  
+http://www.springframework.org/schema/context  
+http://www.springframework.org/schema/context/spring-context-3.0.xsd 
+http://www.springframework.org/schema/tx  
+http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+	<!-- 配置整合mybaits过程 -->
+
+	<!-- 1配置数据库相关参数,properties的属性 ${} -->
+	<context:property-placeholder location="classpath:jdbc.properties" />
+
+	<!-- 2数据量连接池 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<!-- 配置连接池属性 -->
+		<property name="driverClass" value="${jdbc.driver}"></property>
+		<property name="jdbcUrl" value="${jdbc.url}"></property>
+		<property name="user" value="${jdbc.username}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+
+		<!-- c3P0连接池的私有属性 -->
+		<property name="maxPoolSize" value="30"></property>
+		<property name="minPoolSize" value="10"></property>
+		<!-- 关闭连接后不自动conmmit -->
+		<property name="autoCommitOnClose" value="false"></property>
+		<!-- 获取当前连接超时时间 -->
+		<property name="checkoutTimeout" value="10000"></property>
+		<!-- 获取当前连接失败重试次数 -->
+		<property name="acquireRetryAttempts" value="2"></property>
+	</bean>
+
+	<!-- 3配置sqlsessionFactory对象 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 注入数据库连接池 -->
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- 扫描pojo包 使用别名 -->
+		<property name="typeAliasesPackage" value="com.uplooking.pojo"></property>
+	<!-- 分页插件 -->
+	<property name="plugins">
+    	<array>
+     	 <bean class="com.github.pagehelper.PageInterceptor">
+     	 	 <property name="properties">
+          
+          <value>
+            helperDialect=mysql
+          </value>
+        </property>
+         </bean>
+    	</array>
+ 	   </property>
+	</bean>
+
+	<!-- 4配置扫描dao接口包,动态实现dao接口,注入到spring容器中 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 注入sqlSessionFactory -->
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+		<!-- 给出需要扫描dao的接口包 -->
+		<property name="basePackage" value="com.uplooking.dao*"></property>
+	</bean>
+	
+	
+
+</beans>
